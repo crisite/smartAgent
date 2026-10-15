@@ -1,0 +1,12 @@
+model: deepseek-v4-pro
+api_key_name: DEEPSEEK_API_KEY
+base_url: https://api.deepseek.com
+timeout: 60
+max_retries: 1
+tmp_dir: D:\project\Smart-agent\docs\
+
+embedding:
+  api_key_name: ALI_API_KEY
+  model: qwen3.7-text-embedding-flash
+  max_retries: 2
+  max_batch_size: 20

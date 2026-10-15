@@ -1,0 +1,8 @@
+langchain-community
+langchain-text-splitters
+dashscope==1.27.7
+fastapi==0.143.0
+uvicorn==0.54.0
+langchain-deepseek==1.1.1
+PyYAML==6.0.3
+qdrant-client==1.19.1
