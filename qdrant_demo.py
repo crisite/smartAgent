@@ -3,12 +3,19 @@
 from langchain_core.documents import Document
 
 from loader.markdown_loader import MarkdownLoader
+from loader.pdf_loader import PdfLoader
 from services.embedding_service import create_embeddings_service
 from services.vector_store_service import VectorStoreService
 
 
 def main() -> None:
-    chunks = MarkdownLoader().load("04-大模型接入与智能素材开发篇.md")[:8]
+    # chunks = MarkdownLoader().load("04-大模型接入与智能素材开发篇.md")[:8]
+    loader = PdfLoader()
+    documents = loader.load(filename='Python廖雪峰.pdf')
+    chunks: list[Document] = []
+    for document in documents:
+        chunk = document.to_langchain_document()
+        chunks.append(chunk)
     if not chunks:
         raise RuntimeError("Markdown Loader 没有返回可索引的片段")
 
@@ -18,13 +25,15 @@ def main() -> None:
 
     store = VectorStoreService(
         url="http://localhost:6333/",
-        collection_name="smart_agent_markdown_demo",
+        collection_name="smart_agent_pdf_demo",
         vector_size=vector_size,
     )
     store.ensure_collection()
+
+
     stored = store.upsert_documents(chunks, vectors)
 
-    question = "这个项目如何在上下文长度、回答质量和调用成本之间取舍？"
+    question = "如何定义一个什么事也不做的空函数"
     query_vector = embeddings.embed_query(question)
     matches = store.search(query_vector, limit=3)
 

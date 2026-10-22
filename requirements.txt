@@ -1,3 +1,5 @@
+pydantic
+langchain-core
 langchain-community
 langchain-text-splitters
 dashscope==1.27.7

@@ -17,17 +17,16 @@ class VectorStoreService:
         if client is None:
             from qdrant_client import QdrantClient
 
-            client = QdrantClient(url=url.strip())
+            client = QdrantClient(
+                url=url.strip().rstrip("/"),
+                trust_env=False,
+            )
         self.client = client
         self.collection_name = collection_name.strip()
         self.vector_size = vector_size
 
     def ensure_collection(self) -> None:
         from qdrant_client import models
-
-        # str = self.client.get_collection(self.collection_name)
-        # print(str)
-
 
         if self.client.collection_exists(self.collection_name):
             collection = self.client.get_collection(self.collection_name)
@@ -39,7 +38,6 @@ class VectorStoreService:
                     "请使用新的 collection 名称或重建 collection"
                 )
             return
-
 
         self.client.create_collection(
             collection_name=self.collection_name,

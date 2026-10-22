@@ -4,16 +4,9 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter, MarkdownHea
 
 from settings import load_document_dir
 
-class MarkdownLoader():
+class MarkdownLoader:
     def __init__(self):
-        pass
-
-
-    def load(self, file_name: str) -> list[Document]:
-        file_path = load_document_dir() / file_name
-        loader = TextLoader(file_path,  encoding="utf-8")
-        docs = loader.load()
-        markdownHeaderSplitter = MarkdownHeaderTextSplitter(
+        self.markdownHeaderSplitter = MarkdownHeaderTextSplitter(
             headers_to_split_on=[
                 ("#", "h1"),
                 ("##", "h2"),
@@ -24,14 +17,22 @@ class MarkdownLoader():
             ],
             strip_headers=False,
         )
-        text_splitter = RecursiveCharacterTextSplitter(
+        self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=500,
             chunk_overlap=50
         )
-        sections = markdownHeaderSplitter.split_text(docs[0].page_content)
+        pass
+
+
+    def load(self, file_name: str) -> list[Document]:
+        file_path = load_document_dir() / file_name
+        loader = TextLoader(file_path,  encoding="utf-8")
+        docs = loader.load()
+
+        sections = self.markdownHeaderSplitter.split_text(docs[0].page_content)
         for section in sections:
             section.metadata['source'] = file_path.name
-        chunks = text_splitter.split_documents(sections)
+        chunks = self.text_splitter.split_documents(sections)
         return chunks
 
 
