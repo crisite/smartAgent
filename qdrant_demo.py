@@ -2,16 +2,16 @@
 
 from langchain_core.documents import Document
 
-from loader.markdown_loader import MarkdownLoader
 from loader.pdf_loader import PdfLoader
 from services.embedding_service import create_embeddings_service
 from services.vector_store_service import VectorStoreService
+from settings import load_qdrant_settings
 
 
 def main() -> None:
     # chunks = MarkdownLoader().load("04-大模型接入与智能素材开发篇.md")[:8]
     loader = PdfLoader()
-    documents = loader.load(filename='Python廖雪峰.pdf')
+    documents = loader.load(filename='Python廖雪峰.pdf')[:8]
     chunks: list[Document] = []
     for document in documents:
         chunk = document.to_langchain_document()
@@ -21,12 +21,18 @@ def main() -> None:
 
     embeddings = create_embeddings_service()
     vectors = embeddings.embed_documents([chunk.page_content for chunk in chunks])
-    vector_size = len(vectors[0])
+    qdrant_settings = load_qdrant_settings()
+    actual_vector_size = len(vectors[0])
+    if actual_vector_size != qdrant_settings.vector_size:
+        raise ValueError(
+            f"配置的 Qdrant 向量维度为 {qdrant_settings.vector_size}，"
+            f"但 Embedding 模型返回 {actual_vector_size} 维；请检查 config.yaml"
+        )
 
     store = VectorStoreService(
-        url="http://localhost:6333/",
-        collection_name="smart_agent_pdf_demo",
-        vector_size=vector_size,
+        url=qdrant_settings.url,
+        collection_name=qdrant_settings.collection_name,
+        vector_size=qdrant_settings.vector_size,
     )
     store.ensure_collection()
 
@@ -38,7 +44,7 @@ def main() -> None:
     matches = store.search(query_vector, limit=3)
 
     print(f"collection: {store.collection_name}")
-    print(f"向量维度: {vector_size}")
+    print(f"向量维度: {qdrant_settings.vector_size}")
     print(f"本次写入: {stored} 个片段")
     print("Top-K 检索结果:")
     for index, match in enumerate(matches, start=1):

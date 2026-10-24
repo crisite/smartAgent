@@ -43,6 +43,15 @@ class EmbeddingSettings:
     max_batch_size: int
 
 
+@dataclass(frozen=True)
+class QdrantSettings:
+    """Connection and collection settings for the vector database."""
+
+    url: str
+    collection_name: str
+    vector_size: int
+
+
 def load_settings(config_path: Path = CONFIG_PATH) -> Settings:
     """从 YAML 读非敏感配置，再从环境变量读密钥。"""
     with config_path.open(encoding="utf-8") as file:
@@ -113,5 +122,33 @@ def load_embedding_settings(config_path: Path = CONFIG_PATH) -> EmbeddingSetting
         model=model.strip(),
         max_retries=retries,
         max_batch_size=batch_size,
+    )
+
+
+def load_qdrant_settings(config_path: Path = CONFIG_PATH) -> QdrantSettings:
+    """Read Qdrant connection and collection settings from YAML."""
+    with config_path.open(encoding="utf-8") as file:
+        config = yaml.safe_load(file)
+
+    if not isinstance(config, dict):
+        raise ValueError("config.yaml 必须包含配置字段")
+
+    qdrant = config.get("qdrant")
+    if not isinstance(qdrant, dict):
+        raise ValueError("qdrant 必须是一个配置对象")
+
+    url = qdrant.get("url")
+    collection_name = qdrant.get("collection_name")
+    vector_size = qdrant.get("vector_size")
+    for name, value in (("url", url), ("collection_name", collection_name)):
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"qdrant.{name} 必须是非空字符串")
+    if isinstance(vector_size, bool) or not isinstance(vector_size, int) or vector_size <= 0:
+        raise ValueError("qdrant.vector_size 必须是正整数")
+
+    return QdrantSettings(
+        url=url.strip(),
+        collection_name=collection_name.strip(),
+        vector_size=vector_size,
     )
 

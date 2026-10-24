@@ -10,3 +10,8 @@ embedding:
   model: qwen3.7-text-embedding-flash
   max_retries: 2
   max_batch_size: 20
+
+qdrant:
+  url: http://localhost:6333
+  collection_name: smart_agent_pdf_demo
+  vector_size: 1024
